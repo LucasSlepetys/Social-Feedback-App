@@ -1,19 +1,13 @@
 import prisma from '@/prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { Props } from '../Props';
 
 //Zod Schema used to validate the body of a request
 const feedbackQuestionSchema = z.object({
   question: z.string().min(2, 'Please provide a question'),
   answer: z.string().min(1, 'Please provide an answer'),
 });
-
-//props to get id from request URL
-interface Props {
-  params: {
-    id: string;
-  };
-}
 
 //create feedback questions to a video and an answer to that question
 export async function POST(request: NextRequest, { params: { id } }: Props) {
