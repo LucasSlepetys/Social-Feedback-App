@@ -1,0 +1,58 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int       @id @default(autoincrement())
+  videos   Video[]
+  comments Comment[]
+}
+
+model Video {
+  id            Int      @id @default(autoincrement())
+  createdBy     User     @relation(fields: [createdById], references: [id])
+  createdById   Int
+  link          String   @db.VarChar(255)
+  numberOfLikes Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  comments          Comment[]          @relation("VideoToComment")
+  feedbackQuestions FeedbackQuestion[] @relation("VideoToFeedbackQuestion")
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  text      String   @db.VarChar(255)
+  video     Video    @relation("VideoToComment", fields: [videoId], references: [id])
+  videoId   Int
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  createdAt DateTime @default(now())
+}
+
+model FeedbackQuestion {
+  id       Int      @id @default(autoincrement())
+  videoId  Int
+  question String   @db.VarChar(255)
+  answers  Answer[]
+  video    Video    @relation("VideoToFeedbackQuestion", fields: [videoId], references: [id])
+
+  @@index([videoId]) // Indexing videoId for better performance
+}
+
+model Answer {
+  id         Int              @id @default(autoincrement())
+  question   FeedbackQuestion @relation(fields: [questionId], references: [id])
+  questionId Int
+  text       String           @db.VarChar(255)
+  votes      Int              @default(0)
+  createdAt  DateTime         @default(now())
+}
