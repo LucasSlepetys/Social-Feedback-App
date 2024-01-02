@@ -2,6 +2,7 @@ import prisma from '@/prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 import { Props } from './Props';
 
+//gets video with given id
 export async function GET(request: NextRequest, { params: { id } }: Props) {
   //Finds video with the id given in the URL, and checks if video exists
   //returns error if it doesn't
@@ -33,4 +34,34 @@ export async function GET(request: NextRequest, { params: { id } }: Props) {
   });
 
   return NextResponse.json(videoResponse, { status: 200 });
+}
+
+//delete video //all other relations are deleting due to onDelete prisma
+export async function DELETE(request: NextRequest, { params: { id } }: Props) {
+  const videoId = parseInt(id);
+
+  const video = await prisma.video.findUnique({
+    where: {
+      id: videoId,
+    },
+  });
+
+  if (!video) {
+    return NextResponse.json(
+      { error: 'Video not found with given id' },
+      { status: 404 }
+    );
+  }
+
+  // Perform the deletion of the video along with its related entities (since cascading delete is set)
+  await prisma.video.delete({
+    where: {
+      id: videoId,
+    },
+  });
+
+  return NextResponse.json(
+    { message: 'Video deleted successfully' },
+    { status: 200 }
+  );
 }

@@ -18,7 +18,7 @@ model User {
 
 model Video {
   id            Int      @id @default(autoincrement())
-  createdBy     User     @relation(fields: [createdById], references: [id])
+  createdBy     User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
   createdById   Int
   link          String   @db.VarChar(255)
   numberOfLikes Int      @default(0)
@@ -31,9 +31,9 @@ model Video {
 model Comment {
   id        Int      @id @default(autoincrement())
   text      String   @db.VarChar(255)
-  video     Video    @relation("VideoToComment", fields: [videoId], references: [id])
+  video     Video    @relation("VideoToComment", fields: [videoId], references: [id], onDelete: Cascade)
   videoId   Int
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    Int
   createdAt DateTime @default(now())
 }
@@ -43,14 +43,14 @@ model FeedbackQuestion {
   videoId  Int
   question String   @db.VarChar(255)
   answers  Answer[]
-  video    Video    @relation("VideoToFeedbackQuestion", fields: [videoId], references: [id])
+  video    Video    @relation("VideoToFeedbackQuestion", fields: [videoId], references: [id], onDelete: Cascade)
 
   @@index([videoId]) // Indexing videoId for better performance
 }
 
 model Answer {
   id         Int              @id @default(autoincrement())
-  question   FeedbackQuestion @relation(fields: [questionId], references: [id])
+  question   FeedbackQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
   questionId Int
   text       String           @db.VarChar(255)
   votes      Int              @default(0)
