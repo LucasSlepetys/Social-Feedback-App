@@ -10,16 +10,59 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
 model User {
-  id       Int       @id @default(autoincrement())
-  videos   Video[]
-  comments Comment[]
+  id String @id @default(cuid())
+
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  videos        Video[]
+  comments      Comment[]
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
 
 model Video {
-  id            Int      @id @default(autoincrement())
+  id            String   @id @default(cuid())
   createdBy     User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
-  createdById   Int
+  createdById   String
   link          String   @db.VarChar(255)
   numberOfLikes Int      @default(0)
   createdAt     DateTime @default(now())
@@ -29,18 +72,18 @@ model Video {
 }
 
 model Comment {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(cuid())
   text      String   @db.VarChar(255)
   video     Video    @relation("VideoToComment", fields: [videoId], references: [id], onDelete: Cascade)
-  videoId   Int
+  videoId   String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    Int
+  userId    String
   createdAt DateTime @default(now())
 }
 
 model FeedbackQuestion {
-  id       Int      @id @default(autoincrement())
-  videoId  Int
+  id       String   @id @default(cuid())
+  videoId  String
   question String   @db.VarChar(255)
   answers  Answer[]
   video    Video    @relation("VideoToFeedbackQuestion", fields: [videoId], references: [id], onDelete: Cascade)
@@ -49,9 +92,9 @@ model FeedbackQuestion {
 }
 
 model Answer {
-  id         Int              @id @default(autoincrement())
+  id         String           @id @default(cuid())
   question   FeedbackQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  questionId Int
+  questionId String
   text       String           @db.VarChar(255)
   votes      Int              @default(0)
   createdAt  DateTime         @default(now())

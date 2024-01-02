@@ -8,7 +8,7 @@ export async function GET(request: NextRequest, { params: { id } }: Props) {
   //returns error if it doesn't
   const video = await prisma.video.findUnique({
     where: {
-      id: parseInt(id),
+      id: id,
     },
   });
 
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest, { params: { id } }: Props) {
   //returns video
   const videoResponse = await prisma.video.findUnique({
     where: {
-      id: parseInt(id),
+      id: id,
     },
     include: {
       feedbackQuestions: {
@@ -37,8 +37,7 @@ export async function GET(request: NextRequest, { params: { id } }: Props) {
 }
 
 //delete video //all other relations are deleting due to onDelete prisma
-export async function DELETE(request: NextRequest, { params: { id } }: Props) {
-  const videoId = parseInt(id);
+export async function DELETE(request: NextRequest, { params: { id: videoId } }: Props) {
 
   const video = await prisma.video.findUnique({
     where: {

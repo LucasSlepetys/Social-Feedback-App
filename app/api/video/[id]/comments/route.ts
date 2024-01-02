@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Props } from '../Props';
 import { z } from 'zod';
 import prisma from '@/prisma/client';
+import { authOptions } from '@/app/api/auth/[...nextauth]/AuthOptions';
+import { getServerSession } from 'next-auth';
 
 const commentSchema = z.object({
   text: z.string().min(1, 'Please provide a comment'),
-  userId: z.number(),
+  userId: z.string(),
 });
 
 //get the comments of a video
@@ -15,7 +17,7 @@ export async function GET(request: NextRequest, { params: { id } }: Props) {
 
   const video = await prisma.video.findUnique({
     where: {
-      id: parseInt(id),
+      id: id,
     },
   });
 
@@ -29,7 +31,7 @@ export async function GET(request: NextRequest, { params: { id } }: Props) {
   //return the comments
   const comments = await prisma.comment.findMany({
     where: {
-      videoId: parseInt(id),
+      videoId: id,
     },
     include: {
       user: true,
@@ -41,6 +43,14 @@ export async function GET(request: NextRequest, { params: { id } }: Props) {
 
 //creates a new comment for a video
 export async function POST(request: NextRequest, { params: { id } }: Props) {
+  //validate if the user is authenticated:
+  const session = await getServerSession(authOptions);
+  if (!session)
+    return NextResponse.json(
+      { error: 'User must be logged in to do this request' },
+      { status: 401 }
+    );
+
   const body = await request.json();
 
   //Uses zod schema to check if body of request is valid
@@ -55,7 +65,7 @@ export async function POST(request: NextRequest, { params: { id } }: Props) {
 
   const video = await prisma.video.findUnique({
     where: {
-      id: parseInt(id),
+      id: id,
     },
   });
 
@@ -86,7 +96,7 @@ export async function POST(request: NextRequest, { params: { id } }: Props) {
   const res = await prisma.comment.create({
     data: {
       text: body.text,
-      videoId: parseInt(id),
+      videoId: id,
       userId: body.userId,
     },
   });

@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import prisma from '@/prisma/client';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../auth/[...nextauth]/AuthOptions';
 
-let fetchedVideoIds: number[] = [];
+let fetchedVideoIds: string[] = [];
 let fetchCounter = 0;
 const MAX_FETCHES = 5;
 
+//gets latest video that has not been gotten yet
 export async function GET(request: NextRequest) {
   // Reset fetchedVideoIds after 10 fetches
   if (fetchCounter >= MAX_FETCHES) {
@@ -53,7 +56,7 @@ export async function GET(request: NextRequest) {
 
 //Zod schema used to validate body of create new video request
 const videoSchema = z.object({
-  createdById: z.number(),
+  createdById: z.string(),
   link: z.string().min(5, 'Please add a valid link'),
   feedbackQuestions: z
     .array(
@@ -68,7 +71,16 @@ const videoSchema = z.object({
     .max(3, 'Maximum 3 feedback questions allowed'),
 });
 
+//create a video with its feedback questions and its answers for each
 export async function POST(request: NextRequest) {
+  //validate if the user is authenticated:
+  const session = await getServerSession(authOptions);
+  if (!session)
+    return NextResponse.json(
+      { error: 'User must be logged in to do this request' },
+      { status: 401 }
+    );
+
   const body = await request.json();
 
   //Uses zod schema to check if body of request is valid
