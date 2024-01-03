@@ -10,7 +10,7 @@ interface Props {
 }
 
 //delete User //all other relations are deleted due to onDelete prisma
-//** Check that the user being deleted is the user that is logged in */
+//** Check that the user being deleted is the same user that is logged in */
 export async function DELETE(
   request: NextRequest,
   { params: { userID } }: Props

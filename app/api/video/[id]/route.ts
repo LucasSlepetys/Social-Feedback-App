@@ -35,7 +35,7 @@ export async function GET(request: NextRequest, { params: { id } }: Props) {
 
   return NextResponse.json(videoResponse, { status: 200 });
 }
-
+//** make sure the video being deleted is the same as the user authenticated */
 //delete video //all other relations are deleting due to onDelete prisma
 export async function DELETE(request: NextRequest, { params: { id: videoId } }: Props) {
 
