@@ -1,39 +1,32 @@
-import Image from 'next/image';
+'use client';
+
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
+  const router = useRouter();
   return (
-    <main className='flex min-h-screen flex-col items-center justify-between p-24'>
-      <VideoPlayer
-        videoUrl={'https://youtube.com/shorts/CXJT-IA48dU?si=OH741G-NBM_RUtPf'}
-      />
-    </main>
-  );
-}
-
-const VideoPlayer = ({ videoUrl }: { videoUrl: string }) => {
-  return (
-    <div
-      style={{
-        position: 'relative',
-        paddingBottom: '56.25%',
-        height: 0,
-        overflow: 'hidden',
-        maxWidth: '800px',
-        margin: '0 auto',
-      }}
-    >
-      <iframe
-        src={videoUrl}
-        frameBorder='0'
-        allowFullScreen
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-        }}
-      ></iframe>
+    <div className='flex flex-col items-center justify-center h-screen bg-gray-100 p-4'>
+      <div className='bg-white rounded-lg shadow-lg p-8'>
+        <h1 className='text-3xl font-semibold text-center mb-4'>
+          What do you feel like doing today?
+        </h1>
+        <div className='flex flex-col gap-4 sm:flex-row sm:justify-center'>
+          <button
+            type='button'
+            onClick={() => router.push('/content?option=consume')}
+            className='px-4 sm:px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-300'
+          >
+            Consume Content
+          </button>
+          <button
+            type='button'
+            onClick={() => router.push('/content?option=create')}
+            className='px-4 sm:px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 focus:outline-none focus:ring focus:ring-green-300'
+          >
+            Create Content
+          </button>
+        </div>
+      </div>
     </div>
   );
-};
+}
