@@ -1,6 +1,7 @@
 'use client';
 // Importing necessary modules from Next.js and React
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 
@@ -13,6 +14,7 @@ type FileWithPreview = {
 const DragDropUpload = () => {
   // State for storing a single file with preview
   const [file, setFile] = useState<FileWithPreview | null>(null);
+  const router = useRouter();
 
   // useDropzone hook to create a dropzone area
   const { getRootProps, getInputProps } = useDropzone({
@@ -56,6 +58,17 @@ const DragDropUpload = () => {
           </div>
         )}
       </aside>
+      <button
+        type='button'
+        onClick={() => {
+          router.push(
+            `/content/reels/edits?src=${file?.preview}&name=${file?.file.name}`
+          );
+        }}
+        className='fixed bottom-4 right-4 bg-blue-500 text-white p-4 rounded-full'
+      >
+        Next
+      </button>
     </div>
   );
 };
