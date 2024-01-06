@@ -1,4 +1,5 @@
 'use client';
+import { NavigateBackButton } from '@/app/_components';
 // Importing necessary modules from Next.js and React
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -38,37 +39,40 @@ const DragDropUpload = () => {
   }, [file]);
 
   return (
-    <div
-      {...getRootProps()} // Spread operator for dropzone props
-      className='border-dashed border-4 border-gray-200 p-4'
-    >
-      <input {...getInputProps()} /> {/* Input field for file uploads */}
-      <p>Drag 'n' drop some files here, or click to select files</p>
-      <aside>
-        {/* Shows file on the screen if file exists */}
-        {file && (
-          <div>
-            <Image
-              src={file.preview} // Source set to file's preview URL
-              alt={file.file.name} // Alt text for accessibility
-              width={200} // Width of the preview image
-              height={800} // Height of the preview image
-              layout='responsive' // Responsive layout for the image
-            />
-          </div>
-        )}
-      </aside>
-      <button
-        type='button'
-        onClick={() => {
-          router.push(
-            `/content/reels/edits?src=${file?.preview}&name=${file?.file.name}`
-          );
-        }}
-        className='fixed bottom-4 right-4 bg-blue-500 text-white p-4 rounded-full'
+    <div className='relative flex flex-col items-center min-h-screen bg-gray-100 p-4'>
+      <NavigateBackButton />
+      <div
+        {...getRootProps()} // Spread operator for dropzone props
+        className='border-dashed border-4 border-gray-200 p-4'
       >
-        Next
-      </button>
+        <input {...getInputProps()} /> {/* Input field for file uploads */}
+        <p>Drag 'n' drop some files here, or click to select files</p>
+        <aside>
+          {/* Shows file on the screen if file exists */}
+          {file && (
+            <div>
+              <Image
+                src={file.preview} // Source set to file's preview URL
+                alt={file.file.name} // Alt text for accessibility
+                width={200} // Width of the preview image
+                height={800} // Height of the preview image
+                layout='responsive' // Responsive layout for the image
+              />
+            </div>
+          )}
+        </aside>
+        <button
+          type='button'
+          onClick={() => {
+            router.push(
+              `/content/reels/edits?src=${file?.preview}&name=${file?.file.name}`
+            );
+          }}
+          className='fixed bottom-4 right-4 bg-blue-500 text-white p-4 rounded-full'
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 };

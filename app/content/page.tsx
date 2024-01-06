@@ -1,6 +1,6 @@
 'use client';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { IoMdArrowRoundBack } from 'react-icons/io';
+import RouteBackBtn from '../_components/RouteBackBtn';
 
 const ContentSelector = () => {
   const searchParams = useSearchParams();
@@ -10,14 +10,7 @@ const ContentSelector = () => {
 
   return (
     <div className='relative flex flex-col items-center justify-center h-screen bg-gray-100 p-4'>
-      <button
-        onClick={() => {
-          router.back();
-        }}
-        className='absolute shadow-md top-4 left-4 z-50 flex items-center justify-center w-10 h-10 bg-white rounded-full hover:bg-gray-300'
-      >
-        <IoMdArrowRoundBack size={24} />
-      </button>
+      <RouteBackBtn />
       <div className='bg-white rounded-lg shadow-lg p-8'>
         <h1 className='text-2xl font-bold text-center text-gray-700 mb-4'>
           {isCreator

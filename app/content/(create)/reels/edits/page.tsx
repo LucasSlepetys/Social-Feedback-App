@@ -1,132 +1,189 @@
-'use client';
-import Image from 'next/image';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
-import { IoMdArrowRoundBack } from 'react-icons/io';
+'use client'; //indicates that this file is for Next.js client-side operations.
+import { PreviewSelectedFile } from './FileSelectedPreview'; // Imports a component that previews selected files.
+import { FloatingActionButton, NavigateBackButton } from '@/app/_components'; // Imports custom UI components for floating action and navigation back buttons.
+import { useState } from 'react'; // Imports the useState hook from React for state management.
 
-const EditQuestions = () => {
-  const router = useRouter();
-  const params = useSearchParams();
-  const [questions, setQuestions] = useState([
-    { question: '', answer_1: '', answer_2: '' },
-  ]);
+// Defines a type for a feedback question, which includes the question text and two answer options.
+type FeedbackQuestion = {
+  questionText: string;
+  answerOptions: [string, string];
+};
 
-  const src = params.get('src') || ' ';
-  const imgName = params.get('name') || 'Selected img';
+// Main component for editing feedback questions in a video creation interface.
+const VideoFeedbackQuestionsEditor = () => {
+  // useState hook to manage an array of feedback questions.
+  const [feedbackQuestions, setFeedbackQuestions] = useState<
+    FeedbackQuestion[]
+  >([{ questionText: '', answerOptions: ['', ''] }]);
 
-  const addNewQuestion = () => {
-    setQuestions([...questions, { question: '', answer_1: '', answer_2: '' }]);
+  // Function to append a new, empty feedback question to the state.
+  const handleAddFeedbackQuestion = () => {
+    setFeedbackQuestions([
+      ...feedbackQuestions,
+      { questionText: '', answerOptions: ['', ''] },
+    ]);
   };
 
-  const handleChange = (
-    index: number,
-    field: keyof (typeof questions)[0],
-    value: string
+  // Function to update the text of a question or its answer options based on user input.
+  const handleQuestionChange = (
+    questionIdx: number,
+    updatedText: string,
+    answerIdx?: number
   ) => {
-    const updatedQuestions = [...questions];
-    updatedQuestions[index][field] = value;
-    setQuestions(updatedQuestions);
+    const updatedFeedbackQuestions = [...feedbackQuestions];
+    if (answerIdx !== undefined) {
+      // Update the text of a specific answer option.
+      updatedFeedbackQuestions[questionIdx].answerOptions[answerIdx] =
+        updatedText;
+    } else {
+      // Update the text of the question itself.
+      updatedFeedbackQuestions[questionIdx].questionText = updatedText;
+    }
+    setFeedbackQuestions(updatedFeedbackQuestions);
   };
 
-  const handleSubmit = () => {
-    //submits all questions and src and imgName to server
+  // Placeholder function for handling the submission of the video along with the feedback questions.
+  const submitVideoWithFeedbackQuestions = () => {
+    // TODO: Implement the logic to submit the video and feedback questions to the server.
   };
 
+  // Render method that lays out the components and their interactions on the page.
   return (
     <div className='relative flex flex-col items-center min-h-screen bg-gray-100 p-4'>
-      <button
-        onClick={() => router.back()}
-        className='absolute shadow-md top-4 left-4 z-50 flex items-center justify-center w-10 h-10 bg-white rounded-full hover:bg-gray-300'
-      >
-        <IoMdArrowRoundBack size={24} />
-      </button>
-      <div className='w-3/5 aspect-reel mt-12 border border-dashed'>
-        <Image
-          src={src} // Source set to file's preview URL
-          alt={imgName} // Alt text for accessibility
-          width={200} // Width of the preview image
-          height={300} // Height of the preview image
-          layout='responsive' // Responsive layout for the image
-        />
-      </div>
-      <form className='flex flex-col justify-center items-center w-2/3 mt-10'>
-        {questions.map((qts, index) => {
-          return (
-            <NewQuestionInputs
-              handleChange={handleChange}
-              {...qts}
-              index={index}
-              key={index}
-            />
-          );
-        })}
-      </form>
-      <button
-        type='button'
-        onClick={addNewQuestion}
-        className={`${
-          questions.length < 3 ? 'block' : 'hidden'
-        } w-full bg-black text-white p-2 rounded-md`}
-      >
-        Add New Question
-      </button>
-      <button
-        type='button'
-        onClick={handleSubmit}
-        className='fixed bottom-4 right-4 bg-blue-500 text-white p-4 rounded-full'
-      >
-        Publish
-      </button>
+      <NavigateBackButton />
+      <PreviewSelectedFile />
+      <FeedbackQuestionsForm {...{ feedbackQuestions, handleQuestionChange }} />
+      <ConditionalAddQuestionButton
+        onClick={handleAddFeedbackQuestion}
+        hideButton={feedbackQuestions.length >= 3}
+      />
+      <FloatingActionButton onClick={submitVideoWithFeedbackQuestions} />
     </div>
   );
 };
 
-interface Props {
-  question: string;
-  answer_1: string;
-  answer_2: string;
-  index: number;
-  handleChange: Function;
+//!----------------------- Conditional Add Question Button Component -----------------------
+
+// Defines the props for the ConditionalAddQuestionButton component.
+interface ConditionalAddQuestionButtonProps {
+  onClick: React.MouseEventHandler<HTMLButtonElement>;
+  hideButton: boolean;
 }
 
-const NewQuestionInputs = ({
-  question,
-  answer_1,
-  answer_2,
-  index,
-  handleChange,
-}: Props) => {
+// Component for rendering a button that conditionally appears based on the 'hideButton' prop.
+const ConditionalAddQuestionButton = ({
+  onClick: handleClick,
+  hideButton,
+}: ConditionalAddQuestionButtonProps) => {
   return (
-    <div key={index} className='mb-4'>
-      <label htmlFor={`question_${index}`} className='text-lg font-semibold'>
-        Question {index + 1}
-      </label>
-      <input
-        type='text'
-        id={`question_${index}`}
-        placeholder='Enter question'
-        value={question}
-        onChange={(e) => handleChange(index, 'question', e.target.value)}
-        className='w-full py-2 px-3 mt-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500'
-      />
-      <div className='grid gap-2 border border-gray-200 p-2 my-2 rounded-md'>
-        <input
-          type='text'
-          placeholder='Enter Answer'
-          value={answer_1}
-          onChange={(e) => handleChange(index, 'answer_1', e.target.value)}
-          className='w-full py-2 px-3 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500'
-        />
-        <input
-          type='text'
-          placeholder='Enter Answer'
-          value={answer_2}
-          onChange={(e) => handleChange(index, 'answer_2', e.target.value)}
-          className='w-full py-2 px-3 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500'
-        />
-      </div>
-    </div>
+    <button
+      type='button'
+      onClick={handleClick}
+      className={`${
+        hideButton ? 'hidden' : 'block'
+      } w-full bg-black text-white p-2 rounded-md`}
+    >
+      Add New Feedback Question
+    </button>
   );
 };
 
-export default EditQuestions;
+//!----------------------- Feedback Questions Form Component -----------------------
+
+// Defines the props for the FeedbackQuestionsForm component.
+interface FeedbackQuestionsFormProps {
+  feedbackQuestions: FeedbackQuestion[];
+  handleQuestionChange: Function;
+}
+
+// Component for rendering a form that displays all the feedback questions and allows editing.
+const FeedbackQuestionsForm = ({
+  feedbackQuestions,
+  handleQuestionChange,
+}: FeedbackQuestionsFormProps) => {
+  return (
+    <form className='flex flex-col justify-center items-center w-2/3 my-10'>
+      {feedbackQuestions.map((feedbackQuestion, questionIdx) => {
+        const { questionText, answerOptions } = feedbackQuestion;
+        return (
+          <div key={questionIdx}>
+            <p className='ml-2 mt-4 mb-2 text-lg font-bold'>
+              Question {questionIdx + 1}:
+            </p>
+            <FeedbackQuestionInput
+              {...{ questionIdx, questionText, handleQuestionChange }}
+            />
+            <div className='flex gap-4'>
+              {answerOptions.map((answerOption, answerIdx) => (
+                <FeedbackAnswerInput
+                  {...{
+                    questionText: answerOption,
+                    answerIdx,
+                    questionIdx,
+                    handleQuestionChange,
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </form>
+  );
+};
+
+//!----------------------- Feedback Question Input Component -----------------------
+
+// Defines the props for the FeedbackQuestionInput component.
+interface FeedbackQuestionInputProps {
+  questionIdx: number;
+  questionText: string;
+  handleQuestionChange: Function;
+}
+
+// Component for rendering an input field for editing a single feedback question.
+const FeedbackQuestionInput = ({
+  questionIdx,
+  questionText,
+  handleQuestionChange,
+}: FeedbackQuestionInputProps) => {
+  return (
+    <input
+      type='text'
+      placeholder='Enter your question'
+      value={questionText}
+      onChange={(e) => handleQuestionChange(questionIdx, e.target.value)}
+      className='w-full py-2 px-3 mt-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500'
+    />
+  );
+};
+
+//!----------------------- Feedback Answer Input Component -----------------------
+
+// Extends the FeedbackQuestionInputProps with an additional 'answerIdx' property.
+interface FeedbackAnswerInputProps extends FeedbackQuestionInputProps {
+  answerIdx: number;
+}
+
+// Component for rendering an input field for editing a single feedback answer.
+const FeedbackAnswerInput = ({
+  questionIdx,
+  answerIdx,
+  questionText,
+  handleQuestionChange,
+}: FeedbackAnswerInputProps) => {
+  return (
+    <input
+      key={answerIdx}
+      type='text'
+      placeholder={`Answer ${answerIdx + 1}`}
+      value={questionText}
+      onChange={(e) =>
+        handleQuestionChange(questionIdx, e.target.value, answerIdx)
+      }
+      className='w-1/2 py-2 px-3 mt-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500'
+    />
+  );
+};
+
+export default VideoFeedbackQuestionsEditor; // Exports the main VideoFeedbackQuestionsEditor component.
