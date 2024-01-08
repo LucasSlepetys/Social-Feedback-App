@@ -1,26 +1,59 @@
 'use client'; //indicates that this file is for Next.js client-side operations.
-import { PreviewSelectedFile } from './FileSelectedPreview'; // Imports a component that previews selected files.
+import {
+  PreviewSelectedFile,
+  useParamsForFileInfo,
+} from './FileSelectedPreview'; // Imports a component that previews selected files.
 import { FloatingActionButton, NavigateBackButton } from '@/app/_components'; // Imports custom UI components for floating action and navigation back buttons.
+import axios from 'axios';
+import { useSession } from 'next-auth/react';
 import { useState } from 'react'; // Imports the useState hook from React for state management.
+import { DefaultSession } from 'next-auth';
+
+//extends default session return from next-auth to contain user id
+interface User extends DefaultSession {
+  id: string;
+}
 
 // Defines a type for a feedback question, which includes the question text and two answer options.
 type FeedbackQuestion = {
-  questionText: string;
-  answerOptions: [string, string];
+  question: string;
+  answers: [string, string];
+};
+
+// Placeholder function for handling the submission of the video along with the feedback questions.
+const createVideo = async (
+  createdById: string,
+  link: string,
+  feedbackQuestions: FeedbackQuestion[]
+) => {
+  try {
+    const res = await axios.post(`/api/video`, {
+      createdById: createdById,
+      link: link,
+      feedbackQuestions: feedbackQuestions,
+    });
+    console.log(res);
+  } catch (error: any) {
+    console.log(error);
+  }
 };
 
 // Main component for editing feedback questions in a video creation interface.
 const VideoFeedbackQuestionsEditor = () => {
+  //get file info from url:
+  const { fileSrc } = useParamsForFileInfo();
+  //useSession hook from next auth to get cookies from current user
+  const { data: session } = useSession();
   // useState hook to manage an array of feedback questions.
   const [feedbackQuestions, setFeedbackQuestions] = useState<
     FeedbackQuestion[]
-  >([{ questionText: '', answerOptions: ['', ''] }]);
+  >([{ question: '', answers: ['', ''] }]);
 
   // Function to append a new, empty feedback question to the state.
   const handleAddFeedbackQuestion = () => {
     setFeedbackQuestions([
       ...feedbackQuestions,
-      { questionText: '', answerOptions: ['', ''] },
+      { question: '', answers: ['', ''] },
     ]);
   };
 
@@ -33,18 +66,24 @@ const VideoFeedbackQuestionsEditor = () => {
     const updatedFeedbackQuestions = [...feedbackQuestions];
     if (answerIdx !== undefined) {
       // Update the text of a specific answer option.
-      updatedFeedbackQuestions[questionIdx].answerOptions[answerIdx] =
-        updatedText;
+      updatedFeedbackQuestions[questionIdx].answers[answerIdx] = updatedText;
     } else {
       // Update the text of the question itself.
-      updatedFeedbackQuestions[questionIdx].questionText = updatedText;
+      updatedFeedbackQuestions[questionIdx].question = updatedText;
     }
     setFeedbackQuestions(updatedFeedbackQuestions);
   };
 
-  // Placeholder function for handling the submission of the video along with the feedback questions.
+  //call async function to make server request to create video
   const submitVideoWithFeedbackQuestions = () => {
-    // TODO: Implement the logic to submit the video and feedback questions to the server.
+    const user: User = session?.user as User;
+    const userID = user?.id;
+    createVideo(userID, fileSrc, feedbackQuestions);
+    alert('Video has been created');
+    try {
+    } catch (error: any) {
+      alert(error.message);
+    }
   };
 
   // Render method that lays out the components and their interactions on the page.
@@ -104,20 +143,21 @@ const FeedbackQuestionsForm = ({
   return (
     <form className='flex flex-col justify-center items-center w-2/3 my-10'>
       {feedbackQuestions.map((feedbackQuestion, questionIdx) => {
-        const { questionText, answerOptions } = feedbackQuestion;
+        const { question, answers } = feedbackQuestion;
         return (
           <div key={questionIdx}>
             <p className='ml-2 mt-4 mb-2 text-lg font-bold'>
               Question {questionIdx + 1}:
             </p>
             <FeedbackQuestionInput
-              {...{ questionIdx, questionText, handleQuestionChange }}
+              {...{ questionIdx, question, handleQuestionChange }}
             />
             <div className='flex gap-4'>
-              {answerOptions.map((answerOption, answerIdx) => (
+              {answers.map((answerOption, answerIdx) => (
                 <FeedbackAnswerInput
+                  key={answerIdx}
                   {...{
-                    questionText: answerOption,
+                    question: answerOption,
                     answerIdx,
                     questionIdx,
                     handleQuestionChange,
@@ -137,21 +177,21 @@ const FeedbackQuestionsForm = ({
 // Defines the props for the FeedbackQuestionInput component.
 interface FeedbackQuestionInputProps {
   questionIdx: number;
-  questionText: string;
+  question: string;
   handleQuestionChange: Function;
 }
 
 // Component for rendering an input field for editing a single feedback question.
 const FeedbackQuestionInput = ({
   questionIdx,
-  questionText,
+  question,
   handleQuestionChange,
 }: FeedbackQuestionInputProps) => {
   return (
     <input
       type='text'
       placeholder='Enter your question'
-      value={questionText}
+      value={question}
       onChange={(e) => handleQuestionChange(questionIdx, e.target.value)}
       className='w-full py-2 px-3 mt-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500'
     />
@@ -169,7 +209,7 @@ interface FeedbackAnswerInputProps extends FeedbackQuestionInputProps {
 const FeedbackAnswerInput = ({
   questionIdx,
   answerIdx,
-  questionText,
+  question,
   handleQuestionChange,
 }: FeedbackAnswerInputProps) => {
   return (
@@ -177,7 +217,7 @@ const FeedbackAnswerInput = ({
       key={answerIdx}
       type='text'
       placeholder={`Answer ${answerIdx + 1}`}
-      value={questionText}
+      value={question}
       onChange={(e) =>
         handleQuestionChange(questionIdx, e.target.value, answerIdx)
       }
